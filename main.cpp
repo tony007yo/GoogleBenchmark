@@ -64,44 +64,44 @@ struct s1_cold {
 	int d;
 };
 
-void example1_peeling_orig(int len, int ntimes)
+void example1_peeling_orig(struct s1 *buf1_orig, int len, int ntimes)
 {
-	struct s1 *buf1_orig = NULL;
-	alloc_buf(buf1_orig, struct s1, len);
-
 	for (int j = 0; j < ntimes; j++)
 		for (int i = 0; i < len; i++) {
 			buf1_orig[i].a = buf1_orig[i].b;
 		}
-
-	free(buf1_orig);
 }
 
-void example1_peeling_opt(int len, int ntimes)
+void example1_peeling_opt(struct s1_hot *buf1_hot, int len, int ntimes)
 {
-	struct s1_hot *buf1_hot = NULL;
-	alloc_buf(buf1_hot, struct s1_hot, len);
-	
 	for (int j = 0; j <ntimes; j++)
 		for (int i = 0; i < len; i++) {
 			buf1_hot[i].a = buf1_hot[i].b;
 		}
-
-	free(buf1_hot);
 }
 
 void Example1PeelingOrig(benchmark::State& state) {
+	struct s1 *buf1_orig = NULL;
+	alloc_buf(buf1_orig, struct s1, state.range(0));
+
     for (auto _ : state) {
-		example1_peeling_orig(state.range(0), state.range(1));
+		example1_peeling_orig(buf1_orig, state.range(0), state.range(1));
     }
+
+	free(buf1_orig);
 }
 
 BENCHMARK(Example1PeelingOrig)->ArgPair(EX12_LEN, EX12_NTIMES);
 
 void Example1PeelingOpt(benchmark::State& state) {
+	struct s1_hot *buf1_hot = NULL;
+	alloc_buf(buf1_hot, struct s1_hot, state.range(0));
+
     for (auto _ : state) {
-		example1_peeling_opt(state.range(0), state.range(1));
+		example1_peeling_opt(buf1_hot, state.range(0), state.range(1));
     }
+
+	free(buf1_hot);
 }
 
 BENCHMARK(Example1PeelingOpt)->ArgPair(EX12_LEN, EX12_NTIMES);
